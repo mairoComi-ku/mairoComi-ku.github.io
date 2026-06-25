@@ -29,6 +29,7 @@
             flex-direction: column;
             padding: 20px;
         }
+
         .sidebar h2 {
             font-size: 20px;
             margin-bottom: 30px;
@@ -58,7 +59,7 @@
         }
 
         .admin-btn {
-            margin-top: auto; /* Empurra o botão de admin para baixo */
+            margin-top: auto;
             background-color: #b91c1c !important;
             color: white !important;
         }
@@ -250,7 +251,7 @@
                     <p><strong>Nome:</strong> <span id="card-name">---</span></p>
                     <p><strong>Nasc.:</strong> <span id="card-date">---</span></p>
                     <p><strong>Profissão:</strong> <span id="card-job">---</span></p>
-                    <p style="margin-top: 10px; font-size: 11px; color: #93c5fd;">ENVIADO PARA O SISTEMA ADMIN</p>
+                    <p style="margin-top: 10px; font-size: 11px; color: #93c5fd;">ENVIADO PARA A BASE DE DADOS</p>
                 </div>
             </div>
         </div>
@@ -313,8 +314,22 @@
             <button class="btn">Enviar Requerimento</button>
         </div>
 
+        <div id="admin-login-section" class="section">
+            <h3>Acesso Restrito - Segurança Social</h3>
+            <p>Por favor, insere o código de segurança para acederes aos dados do governo.</p>
+            <div class="form-group" style="margin-top: 20px; max-width: 300px;">
+                <label>Palavra-passe:</label>
+                <input type="password" id="admin-pass" placeholder="Insere o código...">
+            </div>
+            <button class="btn admin-btn" onclick="fazerLogin()">Entrar no Sistema</button>
+            <p id="login-erro" style="color: #dc2626; margin-top: 10px; display: none; font-weight: bold;">❌ Código Incorreto!</p>
+        </div>
+
         <div id="admin-section" class="section">
-            <h3>Painel Central Administrativo</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; padding-bottom: 10px;">
+                <h3 style="border: none; margin: 0; padding: 0;">Painel Central Administrativo</h3>
+                <button class="btn" style="background-color: #64748b;" onclick="sairAdmin()">Sair (Logout)</button>
+            </div>
             <p>Abaixo estão todos os cidadãos registados na base de dados do governo.</p>
             
             <table>
@@ -334,8 +349,16 @@
     </div>
 
     <script>
-        // Função para trocar de abas
+        // Variável de segurança (simples)
+        let adminAutenticado = false;
+
+        // Função para trocar de abas com verificação de segurança
         function openSection(sectionId, btnElement) {
+            // Se tentar abrir o painel de admin sem login, atira-o para a página de login
+            if (sectionId === 'admin-section' && !adminAutenticado) {
+                sectionId = 'admin-login-section';
+            }
+
             // Esconde todas as secções
             const sections = document.querySelectorAll('.section');
             sections.forEach(sec => sec.classList.remove('active'));
@@ -346,12 +369,37 @@
 
             // Mostra a secção correta e ativa o botão
             document.getElementById(sectionId).classList.add('active');
-            btnElement.classList.add('active');
+            if(btnElement) btnElement.classList.add('active');
 
-            // Se for a aba de admin, atualiza a tabela com os jogadores salvos
+            // Se for a aba de admin autorizada, atualiza a tabela
             if (sectionId === 'admin-section') {
                 carregarJogadoresAdmin();
             }
+        }
+
+        // Função de Login do Admin
+        function fazerLogin() {
+            const pass = document.getElementById('admin-pass').value;
+            const erroMsg = document.getElementById('login-erro');
+
+            // Aqui está a tua palavra-passe. Muda de "1234" para o que quiseres!
+            if (pass === "1234") {
+                adminAutenticado = true;
+                erroMsg.style.display = "none";
+                document.getElementById('admin-pass').value = ''; // Limpa a caixa
+                
+                // Entra no painel
+                openSection('admin-section', document.querySelector('.admin-btn'));
+            } else {
+                erroMsg.style.display = "block";
+            }
+        }
+
+        // Função de Logout do Admin
+        function sairAdmin() {
+            adminAutenticado = false;
+            openSection('id-section', document.querySelectorAll('.nav-btn')[0]);
+            alert("Sessão terminada com sucesso.");
         }
 
         // Função para registar cidadão e salvar no sistema
@@ -371,17 +419,12 @@
             document.getElementById('card-job').innerText = prof;
             document.getElementById('preview-card').style.display = 'block';
 
-            // --- LÓGICA DE BASE DE DADOS (Simulada com localStorage) ---
-            // Vai buscar os jogadores que já estão salvos (ou cria uma lista vazia se não houver)
+            // Guardar no sistema local (Preparado para mudar para Firebase no futuro)
             let cidadaosSalvos = JSON.parse(localStorage.getItem('rp_hamburg_cidadaos')) || [];
             
             // Adiciona o novo jogador à lista
-            cidadaosSalvos.push({
-                nome: nome,
-                dataNasc: data,
-                profissao: prof
-            });
-
+            cidadaosSalvos.push({ nome: nome, dataNasc: data, profissao: prof });
+            
             // Salva novamente no sistema
             localStorage.setItem('rp_hamburg_cidadaos', JSON.stringify(cidadaosSalvos));
 
