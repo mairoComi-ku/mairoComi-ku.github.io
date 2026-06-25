@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Segurança Social & Governo | Emergency Hamburg RP</title>
+    <title>Segurança Social & Governo | Aveiro RP</title>
     <style>
         * {
             margin: 0;
@@ -211,7 +211,7 @@
 <body>
 
     <div class="sidebar">
-        <h2>Governo Hamburg</h2>
+        <h2>Governo Aveiro</h2>
         <button class="nav-btn active" onclick="openSection('id-section', this)">Cartão de Identidade</button>
         <button class="nav-btn" onclick="openSection('multas-section', this)">Multas Pendentes</button>
         <button class="nav-btn" onclick="openSection('hospital-section', this)">Contas Hospitalares</button>
@@ -245,13 +245,13 @@
             <button class="btn" onclick="gerarCartao()">Gerar e Enviar Cartão</button>
 
             <div class="id-card" id="preview-card" style="display:none;">
-                <h4>República de Hamburg - ID</h4>
+                <h4>República de Aveiro - ID</h4>
                 <div class="id-card-photo">FOTO</div>
                 <div class="id-card-details">
                     <p><strong>Nome:</strong> <span id="card-name">---</span></p>
                     <p><strong>Nasc.:</strong> <span id="card-date">---</span></p>
                     <p><strong>Profissão:</strong> <span id="card-job">---</span></p>
-                    <p style="margin-top: 10px; font-size: 11px; color: #93c5fd;">ENVIADO PARA A BASE DE DADOS</p>
+                    <p style="margin-top: 10px; font-size: 11px; color: #93c5fd;">ENVIADO PARA A BASE DE DADOS (FIREBASE)</p>
                 </div>
             </div>
         </div>
@@ -330,7 +330,7 @@
                 <h3 style="border: none; margin: 0; padding: 0;">Painel Central Administrativo</h3>
                 <button class="btn" style="background-color: #64748b;" onclick="sairAdmin()">Sair (Logout)</button>
             </div>
-            <p>Abaixo estão todos os cidadãos registados na base de dados do governo.</p>
+            <p>Abaixo estão todos os cidadãos registados na base de dados do governo remota.</p>
             
             <table>
                 <thead>
@@ -348,30 +348,43 @@
 
     </div>
 
-    <script>
-        // Variável de segurança (simples)
+    <script type="module">
+        // Importa os SDKs necessários do Firebase usando a versão do teu painel (v12.15.0)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+        // CONFIGURAÇÃO REAL DO TEU PROJETO
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvMetTIHVk67H-GIyuvK3zM5J4Vvj8k-Q",
+            authDomain: "aveiro-rp1.firebaseapp.com",
+            projectId: "aveiro-rp1",
+            storageBucket: "aveiro-rp1.firebasestorage.app",
+            messagingSenderId: "108638628546",
+            appId: "1:108638628546:web:bcc18b17446f8b291cfe1b",
+            measurementId: "G-GR7Y9EH7K0"
+        };
+
+        // Inicializa o Firebase e a Base de Dados (Firestore)
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         let adminAutenticado = false;
 
-        // Função para trocar de abas com verificação de segurança
+        // Função para trocar de abas
         function openSection(sectionId, btnElement) {
-            // Se tentar abrir o painel de admin sem login, atira-o para a página de login
             if (sectionId === 'admin-section' && !adminAutenticado) {
                 sectionId = 'admin-login-section';
             }
 
-            // Esconde todas as secções
             const sections = document.querySelectorAll('.section');
             sections.forEach(sec => sec.classList.remove('active'));
 
-            // Remove o 'active' de todos os botões do menu
             const btns = document.querySelectorAll('.nav-btn');
             btns.forEach(b => b.classList.remove('active'));
 
-            // Mostra a secção correta e ativa o botão
             document.getElementById(sectionId).classList.add('active');
             if(btnElement) btnElement.classList.add('active');
 
-            // Se for a aba de admin autorizada, atualiza a tabela
             if (sectionId === 'admin-section') {
                 carregarJogadoresAdmin();
             }
@@ -382,29 +395,27 @@
             const pass = document.getElementById('admin-pass').value;
             const erroMsg = document.getElementById('login-erro');
 
-            // Aqui está a tua palavra-passe. Muda de "1234" para o que quiseres!
+            // Palavra-passe do Admin
             if (pass === "1234") {
                 adminAutenticado = true;
                 erroMsg.style.display = "none";
-                document.getElementById('admin-pass').value = ''; // Limpa a caixa
-                
-                // Entra no painel
+                document.getElementById('admin-pass').value = ''; 
                 openSection('admin-section', document.querySelector('.admin-btn'));
             } else {
                 erroMsg.style.display = "block";
             }
         }
 
-        // Função de Logout do Admin
+        // Função de Logout
         function sairAdmin() {
             adminAutenticado = false;
             openSection('id-section', document.querySelectorAll('.nav-btn')[0]);
             alert("Sessão terminada com sucesso.");
         }
 
-        // Função para registar cidadão e salvar no sistema
-        function gerarCartao() {
-            const nome = document.getElementById('input-name').value;
+        // ENVIAR DADOS PARA O FIREBASE
+        async function gerarCartao() {
+            const nome = document.getElementById('input-name').value.trim();
             const data = document.getElementById('input-date').value;
             const prof = document.getElementById('input-job').value;
 
@@ -413,72 +424,87 @@
                 return;
             }
 
-            // Mostra os dados no Cartão de Cidadão Virtual na tela do jogador
+            // Feedback visual na tela
             document.getElementById('card-name').innerText = nome;
             document.getElementById('card-date').innerText = data;
             document.getElementById('card-job').innerText = prof;
             document.getElementById('preview-card').style.display = 'block';
 
-            // Guardar no sistema local (Preparado para mudar para Firebase no futuro)
-            let cidadaosSalvos = JSON.parse(localStorage.getItem('rp_hamburg_cidadaos')) || [];
-            
-            // Adiciona o novo jogador à lista
-            cidadaosSalvos.push({ nome: nome, dataNasc: data, profissao: prof });
-            
-            // Salva novamente no sistema
-            localStorage.setItem('rp_hamburg_cidadaos', JSON.stringify(cidadaosSalvos));
+            try {
+                // Salva diretamente na coleção "cidadaos" do teu Firebase remoto
+                await addDoc(collection(db, "cidadaos"), {
+                    nome: nome,
+                    dataNasc: data,
+                    profissao: prof,
+                    dataCriacao: new Date()
+                });
 
-            alert("Sucesso! Cidadão registado na Base de Dados do Governo.");
-            
-            // Limpa o formulário
-            document.getElementById('input-name').value = '';
-            document.getElementById('input-date').value = '';
+                alert("Sucesso! Cidadão registado na Base de Dados Cloud do Firebase.");
+                
+                document.getElementById('input-name').value = '';
+                document.getElementById('input-date').value = '';
+            } catch (error) {
+                console.error("Erro ao salvar no Firebase: ", error);
+                alert("Ocorreu um erro ao enviar para o servidor remoto.");
+            }
         }
 
-        // Função para carregar a tabela na Aba de Admin
-        function carregarJogadoresAdmin() {
+        // CARREGAR DADOS DO FIREBASE NA TABELA ADMIN
+        async function carregarJogadoresAdmin() {
             const tabelaAdmin = document.getElementById('admin-table-body');
-            tabelaAdmin.innerHTML = ''; // Limpa a tabela antes de carregar
+            tabelaAdmin.innerHTML = '<tr><td colspan="4" style="text-align:center;">A carregar dados da nuvem...</td></tr>'; 
 
-            // Vai buscar os dados ao sistema
-            let cidadaosSalvos = JSON.parse(localStorage.getItem('rp_hamburg_cidadaos')) || [];
+            try {
+                const querySnapshot = await getDocs(collection(db, "cidadaos"));
+                tabelaAdmin.innerHTML = ''; 
 
-            if (cidadaosSalvos.length === 0) {
-                tabelaAdmin.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cidadão registado ainda.</td></tr>';
-                return;
-            }
+                if (querySnapshot.empty) {
+                    tabelaAdmin.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cidadão registado ainda.</td></tr>';
+                    return;
+                }
 
-            // Cria uma linha (<tr>) para cada jogador salvo
-            cidadaosSalvos.forEach((jogador, index) => {
-                const linha = `
-                    <tr>
-                        <td><strong>${jogador.nome}</strong></td>
-                        <td>${jogador.dataNasc}</td>
-                        <td>${jogador.profissao}</td>
-                        <td>
-                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="apagarCidadao(${index})">Apagar Registo</button>
-                        </td>
-                    </tr>
-                `;
-                tabelaAdmin.innerHTML += linha;
-            });
-        }
+                querySnapshot.forEach((docSnap) => {
+                    const jogador = docSnap.data();
+                    const docId = docSnap.id; 
 
-        // Função para o Admin apagar um registo
-        function apagarCidadao(index) {
-            if(confirm("Tens a certeza que queres apagar este cidadão da base de dados?")) {
-                let cidadaosSalvos = JSON.parse(localStorage.getItem('rp_hamburg_cidadaos')) || [];
-                
-                // Remove o cidadão da lista usando o index dele
-                cidadaosSalvos.splice(index, 1);
-                
-                // Salva a lista atualizada
-                localStorage.setItem('rp_hamburg_cidadaos', JSON.stringify(cidadaosSalvos));
-                
-                // Recarrega a tabela visualmente
-                carregarJogadoresAdmin();
+                    const linha = `
+                        <tr>
+                            <td><strong>${jogador.nome}</strong></td>
+                            <td>${jogador.dataNasc}</td>
+                            <td>${jogador.profissao}</td>
+                            <td>
+                                <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="apagarCidadao('${docId}')">Apagar Registo</button>
+                            </td>
+                        </tr>
+                    `;
+                    tabelaAdmin.innerHTML += linha;
+                });
+            } catch (error) {
+                console.error("Erro ao ler do Firebase: ", error);
+                tabelaAdmin.innerHTML = '<tr><td colspan="4" style="text-align:center; color: red;">Erro ao aceder à base de dados remota.</td></tr>';
             }
         }
+
+        // APAGAR REGISTO DIRETAMENTE DO FIREBASE
+        async function apagarCidadao(docId) {
+            if(confirm("Tens a certeza que queres apagar este cidadão da base de dados global?")) {
+                try {
+                    await deleteDoc(doc(db, "cidadaos", docId));
+                    alert("Registo removido da nuvem com sucesso.");
+                    carregarJogadoresAdmin(); 
+                } catch (error) {
+                    console.error("Erro ao apagar do Firebase: ", error);
+                    alert("Não foi possível apagar o registo.");
+                }
+            }
+        }
+
+        // Exposição das funções para o HTML funcionar com type="module"
+        window.openSection = openSection;
+        window.fazerLogin = fazerLogin;
+        window.sairAdmin = sairAdmin;
+        window.gerarCartao = gerarCartao;
+        window.apagarCidadao = apagarCidadao;
     </script>
 </body>
 </html>
