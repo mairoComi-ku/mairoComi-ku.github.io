@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segurança Social & Governo | Emergency Hamburg RP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            background-color: #f4f6f9;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Menu Lateral */
+        .sidebar {
+            width: 260px;
+            background-color: #1e293b;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #38bdf8;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 15px;
+        }
+
+        .sidebar button {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+
+        .sidebar button:hover, .sidebar button.active {
+            background-color: #38bdf8;
+            color: #1e293b;
+            font-weight: bold;
+        }
+
+        .admin-btn {
+            margin-top: auto; /* Empurra o botão de admin para baixo */
+            background-color: #b91c1c !important;
+            color: white !important;
+        }
+        
+        .admin-btn:hover, .admin-btn.active {
+            background-color: #dc2626 !important;
+        }
+
+        /* Conteúdo Principal */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        /* Formulários e Elementos */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        button.btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button.btn:hover {
+            background-color: #059669;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444 !important;
+        }
+
+        /* Cartão de Cidadão Virtual */
+        .id-card {
+            width: 350px;
+            height: 200px;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .id-card h4 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: 5px;
+        }
+
+        .id-card-photo {
+            width: 70px;
+            height: 80px;
+            background-color: #e2e8f0;
+            float: left;
+            margin-right: 15px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 10px;
+        }
+
+        .id-card-details p {
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        /* Tabelas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #64748b;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Governo Hamburg</h2>
+        <button class="nav-btn active" onclick="openSection('id-section', this)">Cartão de Identidade</button>
+        <button class="nav-btn" onclick="openSection('multas-section', this)">Multas Pendentes</button>
+        <button class="nav-btn" onclick="openSection('hospital-section', this)">Contas Hospitalares</button>
+        <button class="nav-btn" onclick="openSection('governo-section', this)">Assuntos Governamentais</button>
+        
+        <button class="nav-btn admin-btn" onclick="openSection('admin-section', this)">Painel de Admin</button>
+    </div>
+
+    <div class="main-content">
+
+        <div id="id-section" class="section active">
+            <h3>Registo de Cidadão</h3>
+            <div class="form-group">
+                <label>Nome Completo (Roblox):</label>
+                <input type="text" id="input-name" placeholder="Ex: Joao_Silva">
+            </div>
+            <div class="form-group">
+                <label>Data de Nascimento:</label>
+                <input type="date" id="input-date">
+            </div>
+            <div class="form-group">
+                <label>Profissão Principal:</label>
+                <select id="input-job">
+                    <option value="Cidadão">Cidadão / Desempregado</option>
+                    <option value="Polícia">Polícia (Polizei)</option>
+                    <option value="Médico">Médico / Paramédico (Sanitäter)</option>
+                    <option value="Bombeiro">Bombeiro (Feuerwehr)</option>
+                    <option value="Mecânico">Mecânico</option>
+                </select>
+            </div>
+            <button class="btn" onclick="gerarCartao()">Gerar e Enviar Cartão</button>
+
+            <div class="id-card" id="preview-card" style="display:none;">
+                <h4>República de Hamburg - ID</h4>
+                <div class="id-card-photo">FOTO</div>
+                <div class="id-card-details">
+                    <p><strong>Nome:</strong> <span id="card-name">---</span></p>
+                    <p><strong>Nasc.:</strong> <span id="card-date">---</span></p>
+                    <p><strong>Profissão:</strong> <span id="card-job">---</span></p>
+                    <p style="margin-top: 10px; font-size: 11px; color: #93c5fd;">ENVIADO PARA O SISTEMA ADMIN</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="multas-section" class="section">
+            <h3>Multas Rodoviárias e Criminais</h3>
+            <p>Insere o teu nome para procurar infrações.</p>
+            <div class="form-group" style="margin-top: 15px; display: flex; gap: 10px;">
+                <input type="text" id="search-multas-name" placeholder="Procurar por Nome...">
+                <button class="btn" style="background-color: #3b82f6;">Procurar</button>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Infração</th><th>Valor</th><th>Estado</th><th>Ação</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Excesso de Velocidade</td><td>550€</td>
+                        <td><span class="badge-danger">Não Paga</span></td>
+                        <td><button class="btn" style="padding: 5px 10px; font-size: 12px;">Pagar</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="hospital-section" class="section">
+            <h3>Contas do Hospital (Cuidados Médicos)</h3>
+            <table>
+                <thead>
+                    <tr><th>Serviço Médico</th><th>Custo</th><th>Ação</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Tratamento de Emergência</td><td>1,200€</td>
+                        <td><button class="btn" style="padding: 5px 10px; font-size: 12px;">Pagar Fatura</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="governo-section" class="section">
+            <h3>Suporte ao Cidadão & Burocracia</h3>
+            <p>Envia requerimentos oficiais ao Governo.</p>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>O teu Nome (Roblox):</label>
+                <input type="text" id="gov-name" placeholder="Ex: Joao_Silva">
+            </div>
+            <div class="form-group">
+                <label>Tipo de Requerimento:</label>
+                <select id="gov-type">
+                    <option value="licenca_porte">Licença de Porte de Arma</option>
+                    <option value="licenca_conducao">Segunda Via da Carta de Condução</option>
+                    <option value="reclamacao_policial">Apresentar Queixa contra Oficial</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Motivo / Descrição:</label>
+                <textarea placeholder="Descreve o teu requerimento aqui..."></textarea>
+            </div>
+            <button class="btn">Enviar Requerimento</button>
+        </div>
+
+        <div id="admin-section" class="section">
+            <h3>Painel Central Administrativo</h3>
+            <p>Abaixo estão todos os cidadãos registados na base de dados do governo.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome (Roblox)</th>
+                        <th>Data de Nasc.</th>
+                        <th>Profissão</th>
+                        <th>Gestão</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-table-body">
+                    </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // Função para trocar de abas
+        function openSection(sectionId, btnElement) {
+            // Esconde todas as secções
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(sec => sec.classList.remove('active'));
+
+            // Remove o 'active' de todos os botões do menu
+            const btns = document.querySelectorAll('.nav-btn');
+            btns.forEach(b => b.classList.remove('active'));
+
+            // Mostra a secção correta e ativa o botão
+            document.getElementById(sectionId).classList.add('active');
+            btnElement.classList.add('active');
+
+            // Se for a aba de admin, atualiza a tabela com os jogadores salvos
+            if (sectionId === 'admin-section') {
+                carregarJogadoresAdmin();
+            }
+        }
+
+        // Função para registar cidadão e salvar no sistema
+        function gerarCartao() {
+            const nome = document.getElementById('input-name').value;
+            const data = document.getElementById('input-date').value;
+            const prof = document.getElementById('input-job').value;
+
+            if (nome === "" || data === "") {
+                alert("Por favor, preenche o Nome e a Data de Nascimento!");
+                return;
+            }
+
+            // Mostra os dados no Cartão de Cidadão Virtual na tela do jogador
+            document.getElementById('card-name').innerText = nome;
+            document.getElementById('card-date').innerText = data;
+            document.getElementById('card-job').innerText = prof;
+            document.getElementById('preview-card').style.display = 'block';
+
+            // --- LÓGICA DE BASE DE DADOS (Simulada com localStorage) ---
+            // Vai buscar os jogadores que já estão salvos (ou cria uma lista vazia se não houver)
+            let cidadaosSalvos = JSON.parse(localStorage.getItem('rp_hamburg_cidadaos')) || [];
+            
+            // Adiciona o novo jogador à lista
+            cidadaosSalvos.push({
+                nome: nome,
+                dataNasc: data,
+                profissao: prof
+            });
+
+            // Salva novamente no sistema
+            localStorage.setItem('rp_hamburg_cidadaos', JSON.stringify(cidadaosSalvos));
+
+            alert("Sucesso! Cidadão registado na Base de Dados do Governo.");
+            
+            // Limpa o formulário
+            document.getElementById('input-name').value = '';
+            document.getElementById('input-date').value = '';
+        }
+
+        // Função para carregar a tabela na Aba de Admin
+        function carregarJogadoresAdmin() {
+            const tabelaAdmin = document.getElementById('admin-table-body');
+            tabelaAdmin.innerHTML = ''; // Limpa a tabela antes de carregar
+
+            // Vai buscar os dados ao sistema
+            let cidadaosSalvos = JSON.parse(localStorage.getItem('rp_hamburg_cidadaos')) || [];
+
+            if (cidadaosSalvos.length === 0) {
+                tabelaAdmin.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cidadão registado ainda.</td></tr>';
+                return;
+            }
+
+            // Cria uma linha (<tr>) para cada jogador salvo
+            cidadaosSalvos.forEach((jogador, index) => {
+                const linha = `
+                    <tr>
+                        <td><strong>${jogador.nome}</strong></td>
+                        <td>${jogador.dataNasc}</td>
+                        <td>${jogador.profissao}</td>
+                        <td>
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="apagarCidadao(${index})">Apagar Registo</button>
+                        </td>
+                    </tr>
+                `;
+                tabelaAdmin.innerHTML += linha;
+            });
+        }
+
+        // Função para o Admin apagar um registo
+        function apagarCidadao(index) {
+            if(confirm("Tens a certeza que queres apagar este cidadão da base de dados?")) {
+                let cidadaosSalvos = JSON.parse(localStorage.getItem('rp_hamburg_cidadaos')) || [];
+                
+                // Remove o cidadão da lista usando o index dele
+                cidadaosSalvos.splice(index, 1);
+                
+                // Salva a lista atualizada
+                localStorage.setItem('rp_hamburg_cidadaos', JSON.stringify(cidadaosSalvos));
+                
+                // Recarrega a tabela visualmente
+                carregarJogadoresAdmin();
+            }
+        }
+    </script>
+</body>
+</html>
